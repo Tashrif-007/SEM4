@@ -1,118 +1,84 @@
-#include <iostream>
-#include <cctype>
-#include <cstring>
+#include<bits/stdc++.h>
+using namespace std;
 
-const int SIZE = 5;
-
-// Function to remove duplicate letters from the key
-std::string removeDuplicates(const std::string& input) {
-    std::string result = "";
-    for (char ch : input) {
-        if (std::isalpha(ch) && result.find(ch) == std::string::npos) {
-            result += std::toupper(ch);
+string removeDup(const string &temp)
+{
+    string res;
+    for(auto ch : temp)
+    {
+        if(isalpha(ch) && res.find(ch)==string::npos)
+        {
+            res+=toupper(ch);
         }
     }
-    return result;
+    return res;
 }
 
-// Function to initialize the key matrix based on the provided key
-void initializeKeyMatrix(char keyMatrix[SIZE][SIZE], const std::string& key) {
-    std::string keyWithoutDuplicates = removeDuplicates(key + "ABCDEFGHIKLMNOPQRSTUVWXYZ");
-    int k = 0;
+void makeMat(char mat[5][5], const string &key)
+{
+    string temp = removeDup(key +"ABCDEFGHIKLMNOPQRSTUVWXYZ");
+    int x = 0;
 
-    // Fill the key matrix with the key and remaining alphabet
-    for (int i = 0; i < SIZE; ++i) {
-        for (int j = 0; j < SIZE; ++j) {
-            keyMatrix[i][j] = keyWithoutDuplicates[k++];
-        }
+    for(int i=0; i<5; i++)
+    {
+        for(int j=0; j<5; j++)
+        mat[i][j] = temp[x++];
     }
 }
 
-// Function to get the position of a letter in the key matrix
-void getLetterPosition(const char keyMatrix[SIZE][SIZE], char letter, int& row, int& col) {
-    if (letter == 'J') letter = 'I'; // Treat 'J' as 'I'
-    for (row = 0; row < SIZE; ++row) {
-        for (col = 0; col < SIZE; ++col) {
-            if (keyMatrix[row][col] == letter) {
+void getPos(const char mat[5][5], char temp, int &row, int &col)
+{
+    if(temp=='J')
+    temp = 'I';
+
+    for(int i=0; i<5; i++)
+    {
+        for(int j=0; j<5; j++)
+        {
+            if(mat[i][j]==temp)
+            {
+                row = i;
+                col = j;
                 return;
             }
         }
     }
 }
 
-// Function to encrypt a pair of letters
-std::string encryptPair(const char keyMatrix[SIZE][SIZE], char first, char second) {
-    int row1, col1, row2, col2;
-    getLetterPosition(keyMatrix, first, row1, col1);
-    getLetterPosition(keyMatrix, second, row2, col2);
+string encrypt(const char mat[5][5], char temp1, char temp2)
+{
+    int row1,row2,col1,col2;
+    getPos(mat, temp1, row1, col1);
+    getPos(mat, temp2, row2, col2);
 
-    if (row1 == row2) {
-        // Same row, shift columns
-        return std::string(1, keyMatrix[row1][(col1 + 1) % SIZE]) + keyMatrix[row1][(col2 + 1) % SIZE];
-    } else if (col1 == col2) {
-        // Same column, shift rows
-        return std::string(1, keyMatrix[(row1 + 1) % SIZE][col1]) + keyMatrix[(row2 + 1) % SIZE][col2];
-    } else {
-        // Form a rectangle, swap columns
-        return std::string(1, keyMatrix[row1][col2]) + keyMatrix[row2][col1];
+    if(row1==row2)
+    {
+        return string(1,mat[row1][(col1+1)%5]) + mat[row1][(col2+1)%5];
+    }
+    else if(col1==col2)
+    {
+        return string(1,mat[(row1+1)%5][col1]) + mat[(row2+1)%5][col2];
+    }
+    else
+    {
+        return string(1, mat[row1][col2]) + mat[row2][col1];
     }
 }
 
-// Function to decrypt a pair of letters
-std::string decryptPair(const char keyMatrix[SIZE][SIZE], char first, char second) {
-    int row1, col1, row2, col2;
-    getLetterPosition(keyMatrix, first, row1, col1);
-    getLetterPosition(keyMatrix, second, row2, col2);
+int main()
+{
+    string plain, cipher, key;
+    cout<<"Enter key and plaintext:"<<endl;
+    cin>>key>>plain;
+    char mat[5][5];
+    makeMat(mat, key);
 
-    if (row1 == row2) {
-        // Same row, shift columns back
-        return std::string(1, keyMatrix[row1][(col1 - 1 + SIZE) % SIZE]) + keyMatrix[row1][(col2 - 1 + SIZE) % SIZE];
-    } else if (col1 == col2) {
-        // Same column, shift rows back
-        return std::string(1, keyMatrix[(row1 - 1 + SIZE) % SIZE][col1]) + keyMatrix[(row2 - 1 + SIZE) % SIZE][col2];
-    } else {
-        // Form a rectangle, swap columns back
-        return std::string(1, keyMatrix[row1][col2]) + keyMatrix[row2][col1];
+    for(int i=0; i<plain.size(); i+=2)
+    {
+        char temp1 = plain[i];
+        char temp2 = (i+1<plain.size()&&plain[i]!=plain[i+1])?plain[i+1]:'X';
+        cipher+=encrypt(mat, temp1, temp2);
     }
-}
-
-int main() {
-    char keyMatrix[SIZE][SIZE];
-    std::string key;
-
-    // Input the key
-    std::cout << "Enter the key (without spaces): ";
-    std::cin >> key;
-
-    // Initialize the key matrix
-    initializeKeyMatrix(keyMatrix, key);
-
-    std::string plaintext;
-    std::cout << "Enter the plaintext (uppercase): ";
-    std::cin >> plaintext;
-
-    std::string ciphertext = "";
-
-    // Encrypt the plaintext
-    for (size_t i = 0; i < plaintext.length(); i += 2) {
-        char first = plaintext[i];
-        char second = (i + 1 < plaintext.length()) ? plaintext[i + 1] : 'X'; // Add 'X' if the last pair has only one letter
-        ciphertext += encryptPair(keyMatrix, first, second);
-    }
-
-    std::cout << "Encrypted Text: " << ciphertext << std::endl;
-
-    std::string decryptedText = "";
-
-    // Decrypt the ciphertext
-    for (size_t i = 0; i < ciphertext.length(); i += 2) {
-        char first = ciphertext[i];
-        char second = ciphertext[i + 1];
-        decryptedText += decryptPair(keyMatrix, first, second);
-    }
-
-    
-    std::cout << "Decrypted Text: " << decryptedText << std::endl;
-
+    cout<<"Encrypted cipher: "<<cipher;
     return 0;
 }
