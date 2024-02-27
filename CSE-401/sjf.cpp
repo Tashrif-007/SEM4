@@ -8,6 +8,8 @@ struct process {
     int start;
     int end;
     int index;
+    int turn;
+    int wait;
 };
 
 bool compare(process p1, process p2)
@@ -28,6 +30,8 @@ int main() {
         processes[i].start = 0;
         processes[i].end = processes[i].burst_time;
         processes[i].index = i+1;
+        processes[i].wait=0;
+        processes[i].turn = processes[i].burst_time;
     }
     
     sort(processes, processes+num, compare);
@@ -36,7 +40,8 @@ int main() {
     for(int i = 1; i < num; i++) {
         processes[i].start = processes[i - 1].burst_time + processes[i - 1].start;
         processes[i].end = processes[i].start + processes[i].burst_time;
-        cout<<processes[i].start<<" "<<processes[i].end<<endl;
+        processes[i].turn = processes[i].end - processes[i].arrival;
+        processes[i].wait = processes[i-1].wait + processes[i-1].burst_time;
     }
 
     cout<<"Gantt Chart\n";
@@ -53,9 +58,37 @@ int main() {
         if(processes[i].end - processes[i].start <= 1)
             cout << "P" << processes[i].index;
     }
-
     cout << "|";
     cout << endl;
 
+    for(int i=0; i<num; i++)
+    {
+        for(int j=processes[i].start; j<processes[i].end; j++)
+        {
+            if(j==processes[i].start)
+                cout<<j;
+            else
+            cout<<" ";
+        }
+    }
+    cout<<processes[num-1].end<<endl;
+
+    cout<<"Turnaround and Waiting times: \n";
+    for(auto x : processes)
+    {
+        cout<<"P"<<x.index<<" Turn: "<<x.turn<<" Wait: "<<x.wait<<endl;
+    }
+
+    int sum=0;
+    cout<<"Average Turn Around Time: \n";
+    for(auto x : processes)
+    sum+=x.turn;
+    cout<<(double)sum/num<<endl;
+
+    sum=0;
+    cout<<"Average Waiting Time: \n";
+    for(auto x : processes)
+    sum+=x.wait;
+    cout<<(double)sum/num<<endl;
     return 0;
 }
