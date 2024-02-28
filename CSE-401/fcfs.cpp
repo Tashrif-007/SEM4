@@ -12,6 +12,10 @@ struct process {
     int wait;
 };
 
+bool compare(process p1, process p2)
+{
+    return p1.arrival<p2.arrival;
+}
 int main() {
     int num;
     cout << "Enter number of processes\n";
@@ -20,8 +24,8 @@ int main() {
 
     cout << "Enter burst time and priority for each process\n";
     for(int i=0; i<num; i++) {
-        cin >> processes[i].burst_time >> processes[i].priority;
-        processes[i].arrival = 0;
+        cin >> processes[i].burst_time >> processes[i].priority>>processes[i].arrival;
+        //processes[i].arrival = 0;
         processes[i].start = 0;
         processes[i].end = processes[i].burst_time;
         processes[i].index = i+1;
@@ -29,6 +33,7 @@ int main() {
         processes[i].turn = processes[i].burst_time;
     }
     
+    sort(processes, processes+num, compare);
     for(int i = 1; i < num; i++) {
         processes[i].start = processes[i - 1].burst_time + processes[i - 1].start;
         processes[i].end = processes[i].start + processes[i].burst_time;
@@ -59,7 +64,7 @@ int main() {
         for(int j=processes[i].start; j<processes[i].end; j++)
         {
             if(j==processes[i].start)
-                cout<<j;
+                cout<<j<<" ";
             else
             cout<<" ";
         }
