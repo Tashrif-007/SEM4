@@ -66,7 +66,7 @@ int main() {
         for(int j=processes[i].start; j<processes[i].end; j++)
         {
             if(j==processes[i].start)
-                cout<<j;
+                cout<<j<<" ";
             else
             cout<<" ";
         }
