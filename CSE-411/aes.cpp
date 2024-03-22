@@ -54,7 +54,7 @@ unsigned char* keyExpansion(string key)
                 unsigned char temp[4];
                 for(int k=0; k<4; k++)
                 temp[k] = words[i-1][k];
-                g(temp, i%4);
+                g(temp, i/4-1);
                 for(int k=0; k<4; k++)
                 words[i][k] = temp[k]^words[i-4][k];
             }
