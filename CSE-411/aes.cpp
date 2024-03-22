@@ -38,7 +38,7 @@ void g(unsigned char temp[4], int round)
     temp[0] = temp[0]^rcons[round];
 }
 
-unsigned char* keyExpansion(string key)
+void keyExpansion(string key, unsigned char *expandedKeys)
 {
     unsigned char words[44][4];
     for(int i=0; i<4; i++)
@@ -64,6 +64,26 @@ unsigned char* keyExpansion(string key)
                 words[i][k] = words[i-1][k]^words[i-4][k];
             }
     }
+    // for(int i=0; i<44; i++)
+    // {
+    //     for(int j=0; j<4; j++)
+    //     printf("%x ", words[i][j]);
+    //     printf("\n");
+    // }
+    for(int i=0,k=0; i<44; i++)
+    {
+        for(int j=0; j<4; j++)
+        expandedKeys[k++] = words[i][j];
+    }
+}
+
+void subByte(unsigned char state[4][4])
+{
+    for(int i=0; i<4; i++)
+    {
+        for(int j=0; j<4; j++)
+        state[i][j] = subs_box[state[i][j]>>4][state[i][j]&0x0F];
+    }
 }
 
 int main()
@@ -71,11 +91,13 @@ int main()
     string plainText, key;
     unsigned char state[4][4], expandedKeys[176];    
     cin>>plainText>>key;
+    //unsigned char key[] = {0x0f, 0x15, 0x71, 0xc9, 0x47, 0xd9, 0xe8, 0x59, 0x0c, 0xb7, 0xad, 0xd6, 0xaf, 0x7f, 0x67, 0x98};
     for(int i=0; i<4; i++)
     {
         for(int j=0; j<4; j++)
         state[j][i] = plainText[i*4+j];
     }
+    keyExpansion(key, expandedKeys);
     
     return 0;
 }
