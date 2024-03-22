@@ -86,6 +86,30 @@ void subByte(unsigned char state[4][4])
     }
 }
 
+void shiftRow(unsigned char state[4][4])
+{
+    unsigned char temp;
+
+    temp = state[1][0];
+    state[1][0] = state[1][1];
+    state[1][1] = state[1][2];
+    state[1][2] = state[1][3];
+    state[1][3] = temp;
+
+    temp = state[2][0];
+    state[2][0] = state[2][2];
+    state[2][2] = temp;
+    temp = state[2][1];
+    state[2][1] = state[2][3];
+    state[2][3] = temp;
+
+    temp = state[3][3];
+    state[3][3] = state[3][2];
+    state[3][2] = state[3][1];
+    state[3][1] = state[3][0];
+    state[3][0] = temp;
+}
+
 int main()
 {
     string plainText, key;
