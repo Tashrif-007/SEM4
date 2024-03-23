@@ -396,7 +396,11 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     for(int i=0; i<4; i++)
     {
         for(int j=0; j<4; j++)
-        state[j][i] = plainText[i*4+j];
+        {
+            state[j][i] = plainText[i*4+j];
+            printf("%x ", state[j][i]);
+        }
+        
     }
     keyExpansion(key, expandedKeys);
     AESEncrypt(state, expandedKeys, cipher);
@@ -404,8 +408,14 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     printf("%x ", cipher[i]);
     printf("\n");
     AESDecrypt(state, expandedKeys, decrypted);
-    for(int i=0; i<16; i++)
-    printf("%c ", decrypted[i]);
+    
+}
+
+void removePadding(unsigned char decrypted[16])
+{
+    int last = decrypted[15];
+    for(int i=0; i<16-last; i++)
+    printf("%x ", decrypted[i]);
     printf("\n");
 }
 
@@ -414,10 +424,23 @@ int main()
     string plainText, key;
     unsigned char state[4][4], expandedKeys[176], cipher[16], decrypted[16];    
     cin>>plainText>>key;
+    int rem = 16-plainText.size()%16;
+    if(rem!=16)
+    {
+        for(int i=0; i<rem; i++)
+        plainText+=(unsigned char)rem;
+    }
     int rounds = plainText.size()/16;
     //unsigned char key[] = {0x0f, 0x15, 0x71, 0xc9, 0x47, 0xd9, 0xe8, 0x59, 0x0c, 0xb7, 0xad, 0xd6, 0xaf, 0x7f, 0x67, 0x98};
     //unsigned char plainText[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10};
     for(int i=0; i<rounds; i++)
-    sample(plainText.substr(i*16, 16), key, state, expandedKeys, cipher, decrypted);
+    {
+        sample(plainText.substr(i*16, 16), key, state, expandedKeys, cipher, decrypted);
+            for(int j=0; j<16; j++)
+            {
+                printf("%c ", decrypted[j]);
+            }
+            printf("\n");
+    }
     return 0;
 }
