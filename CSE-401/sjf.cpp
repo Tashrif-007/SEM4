@@ -10,11 +10,16 @@ struct process {
     int index;
     int turn;
     int wait;
+    bool processed;
 };
 
 bool compare(process p1, process p2)
 {
     return p1.burst_time<p2.burst_time;
+}
+bool compare2(process p1, process p2)
+{
+    return p1.arrival<p2.arrival;
 }
 
 int main() {
@@ -25,8 +30,8 @@ int main() {
 
     cout << "Enter burst time and priority for each process\n";
     for(int i=0; i<num; i++) {
-        cin >> processes[i].burst_time >> processes[i].priority;
-        processes[i].arrival = 0;
+        cin>>processes[i].burst_time>>processes[i].arrival;
+        processes[i].processed = false;
         processes[i].start = 0;
         processes[i].end = processes[i].burst_time;
         processes[i].index = i+1;
@@ -34,16 +39,41 @@ int main() {
         processes[i].turn = processes[i].burst_time;
     }
     
-    sort(processes, processes+num, compare);
-
+    sort(processes, processes+num, compare2);
     
-    for(int i = 1; i < num; i++) {
-        processes[i].start = processes[i - 1].burst_time + processes[i - 1].start;
-        processes[i].end = processes[i].start + processes[i].burst_time;
-        processes[i].turn = processes[i].end - processes[i].arrival;
-        processes[i].wait = processes[i-1].wait + processes[i-1].burst_time;
+    int curr=0;
+    for(int i=0; i<num; i++)
+    {
+        int mTime = INT_MAX, idx;
+        for(int j=0; j<num; j++)
+        {
+            if(processes[j].arrival<=curr && processes[j].burst_time<mTime && !processes[j].processed)
+            {
+                mTime = processes[j].burst_time;
+                idx = j;
+            }
+        }
+        if(mTime==INT_MAX)
+        {
+            int mBurst = INT_MAX;
+            for(int j=0; j<num; j++)
+            {
+                if(processes[j].arrival<=mTime && processes[j].burst_time<mBurst && !processes[j].processed)
+                {
+                    mBurst = processes[j].burst_time;
+                    mTime = processes[j].arrival; 
+                    idx=j;
+                }
+            }
+            curr = mTime;
+        }
+        processes[idx].start = curr, processes[idx].end = curr+processes[idx].burst_time;
+        processes[idx].turn = processes[idx].end - processes[idx].arrival;
+        processes[idx].wait = processes[idx].turn - processes[idx].burst_time;
+        curr = processes[idx].end;
+        processes[idx].processed = true;
     }
-
+    
     cout<<"Gantt Chart\n";
 
     for(int i = 0; i < num; i++) {
