@@ -12,10 +12,6 @@ struct process {
     int wait;
 };
 
-bool compare(process p1, process p2)
-{
-    return p1.arrival<p2.arrival;
-}
 int main() {
     int num;
     cout << "Enter number of processes\n";
@@ -24,7 +20,7 @@ int main() {
 
     cout << "Enter burst time and priority for each process\n";
     for(int i=0; i<num; i++) {
-        cin >> processes[i].burst_time >> processes[i].priority>>processes[i].arrival;
+        cin >> processes[i].burst_time>>processes[i].arrival;
         //processes[i].arrival = 0;
         processes[i].start = 0;
         processes[i].end = processes[i].burst_time;
@@ -33,14 +29,25 @@ int main() {
         processes[i].turn = processes[i].burst_time;
     }
     
-    sort(processes, processes+num, compare);
     for(int i = 1; i < num; i++) {
-        processes[i].start = processes[i - 1].burst_time + processes[i - 1].start;
-        processes[i].end = processes[i].start + processes[i].burst_time;
-        processes[i].turn = processes[i].end - processes[i].arrival;
-        processes[i].wait = processes[i-1].wait + processes[i-1].burst_time;
+        if(processes[i].arrival>processes[i-1].end)
+        {
+            processes[i].start = processes[i].arrival;
+            processes[i].end = processes[i].start+processes[i].burst_time;
+            processes[i].turn = processes[i].end-processes[i].arrival;
+            processes[i].wait = processes[i-1].start;
+        }
+        else
+        {
+            processes[i].start = processes[i - 1].end;
+            processes[i].end = processes[i].start + processes[i].burst_time;
+            processes[i].turn = processes[i].end - processes[i].arrival;
+            processes[i].wait = processes[i-1].wait + processes[i-1].burst_time;
+        }
     }
 
+    for(auto x :processes)
+    cout<<x.start<<" "<<x.end<<endl;
     cout<<"Gantt Chart\n";
 
     for(int i = 0; i < num; i++) {
@@ -64,7 +71,7 @@ int main() {
         for(int j=processes[i].start; j<processes[i].end; j++)
         {
             if(j==processes[i].start)
-                cout<<j<<" ";
+                cout<<j;
             else
             cout<<" ";
         }
