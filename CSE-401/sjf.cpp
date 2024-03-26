@@ -15,7 +15,7 @@ struct process {
 
 bool compare(process p1, process p2)
 {
-    return p1.burst_time<p2.burst_time;
+    return p1.start<p2.start;
 }
 bool compare2(process p1, process p2)
 {
@@ -32,11 +32,11 @@ int main() {
     for(int i=0; i<num; i++) {
         cin>>processes[i].burst_time>>processes[i].arrival;
         processes[i].processed = false;
-        processes[i].start = 0;
-        processes[i].end = processes[i].burst_time;
+        //processes[i].start = 0;
+        //processes[i].end = processes[i].burst_time;
         processes[i].index = i+1;
-        processes[i].wait=0;
-        processes[i].turn = processes[i].burst_time;
+        //processes[i].wait=0;
+        //processes[i].turn = processes[i].burst_time;
     }
     
     sort(processes, processes+num, compare2);
@@ -74,6 +74,9 @@ int main() {
         processes[idx].processed = true;
     }
     
+    sort(processes, processes+num,compare);
+    for(auto x : processes)
+    cout<<x.start<<" "<<x.end<<endl;
     cout<<"Gantt Chart\n";
 
     for(int i = 0; i < num; i++) {
