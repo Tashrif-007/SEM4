@@ -437,7 +437,10 @@ int main()
     for(int i=0; i<rounds; i++)
     {
         sample(plainText.substr(i*16, 16), key, state, expandedKeys, cipher, decrypted);
+        {
             cout<<decrypted<<endl;
+            decrypted.clear();
+        }
     }
     return 0;
 }
