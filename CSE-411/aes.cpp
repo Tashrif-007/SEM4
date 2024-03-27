@@ -375,7 +375,7 @@ void AESEncrypt(unsigned char state[4][4], unsigned char expandedKeys[176], unsi
     cipher[k++] = state[j][i];
 }
 
-void AESDecrypt(unsigned char state[4][4], unsigned char expandedKeys[176], unsigned char decrypted[16])
+void AESDecrypt(unsigned char state[4][4], unsigned char expandedKeys[176], string &decrypted)
 {
     addRoundKey(state, expandedKeys, 10);
     for(int i=9; i>=0; i--)
@@ -386,21 +386,23 @@ void AESDecrypt(unsigned char state[4][4], unsigned char expandedKeys[176], unsi
         if(i!=0)
         invMixColumn(state);
     }
-    for(int i=0,k=0; i<4; i++)
-    for(int j=0; j<4; j++)
-    decrypted[k++] = state[j][i];
+    for(int i=0; i<4; i++)
+    {
+        for(int j=0; j<4; j++)
+        decrypted+=state[j][i];
+    }
 }
 
-void sample(string plainText, string key, unsigned char state[4][4], unsigned char expandedKeys[176], unsigned char cipher[16], unsigned char decrypted[16])
+void sample(string plainText, string key, unsigned char state[4][4], unsigned char expandedKeys[176], unsigned char cipher[16], string &decrypted)
 {
-    for(int i=0; i<4; i++)
+    for(int i=0,k=0; i<4; i++)
     {
         for(int j=0; j<4; j++)
         {
             state[j][i] = plainText[i*4+j];
-            printf("%x ", state[j][i]);
+            //printf("%x ", state[j][i]);
         }
-        
+        printf("\n");
     }
     keyExpansion(key, expandedKeys);
     AESEncrypt(state, expandedKeys, cipher);
@@ -408,7 +410,6 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     printf("%x ", cipher[i]);
     printf("\n");
     AESDecrypt(state, expandedKeys, decrypted);
-    
 }
 
 void removePadding(unsigned char decrypted[16])
@@ -421,8 +422,8 @@ void removePadding(unsigned char decrypted[16])
 
 int main()
 {
-    string plainText, key;
-    unsigned char state[4][4], expandedKeys[176], cipher[16], decrypted[16];    
+    string plainText, key,decrypted;
+    unsigned char state[4][4], expandedKeys[176], cipher[16];    
     cin>>plainText>>key;
     int rem = 16-plainText.size()%16;
     if(rem!=16)
@@ -436,11 +437,7 @@ int main()
     for(int i=0; i<rounds; i++)
     {
         sample(plainText.substr(i*16, 16), key, state, expandedKeys, cipher, decrypted);
-            for(int j=0; j<16; j++)
-            {
-                printf("%c ", decrypted[j]);
-            }
-            printf("\n");
+            cout<<decrypted<<endl;
     }
     return 0;
 }
