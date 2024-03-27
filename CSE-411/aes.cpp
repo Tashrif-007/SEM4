@@ -424,7 +424,8 @@ int main()
 {
     string plainText, key,decrypted;
     unsigned char state[4][4], expandedKeys[176], cipher[16];    
-    cin>>plainText>>key;
+    getline(cin, plainText);
+    cin>>key;
     int rem = 16-plainText.size()%16;
     if(rem!=16)
     {
