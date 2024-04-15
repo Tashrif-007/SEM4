@@ -16,7 +16,7 @@ struct process {
 
 bool compare2(process p1, process p2)
 {
-    return (p1.arrival<p2.arrival) || (p1.arrival==p2.arrival && p1.priority>p2.priority);
+    return (p1.arrival<p2.arrival) || (p1.arrival==p2.arrival && p1.burst_time<p2.burst_time);
 }
 
 int main() {
