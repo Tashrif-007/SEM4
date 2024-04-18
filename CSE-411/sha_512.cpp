@@ -227,7 +227,7 @@ string getHash(string message)
 int main()
 {
     string message;
-    cin>>message;
+    getline(cin, message);
     cout<<getHash(message)<<endl;
     return 0;
 }
