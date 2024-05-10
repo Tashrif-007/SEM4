@@ -58,7 +58,7 @@ void isSafe(vector<vector<int>>&maxx, vector<vector<int>>&allocation, vector<vec
 }
 int main()
 {
-    freopen("test.txt", "r", stdin);
+    freopen("bankers_input.txt", "r", stdin);
     int numProcess, numResources;
     cout<<"Enter the number of processes and resources: ";
     cin>>numProcess>>numResources;
