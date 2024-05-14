@@ -415,12 +415,34 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     AESEncrypt(state, expandedKeys, cipher);
     ofstream outFile("cipher.txt", ios::app);
     for (int i = 0; i < 16; ++i) {
-        outFile << hex<<(int)state[i / 4][i % 4];
+        outFile << hex<<(int)cipher[i]<<" ";
     }
     outFile.close();
     printf("\n");
     for(int i=0; i<16; i++)
     IV[i]=cipher[i];
+
+    ifstream inFile("cipher.txt");
+    if (!inFile.is_open()) {
+        cerr << "Error opening file.";
+        return;
+    }
+
+    unsigned int value;
+    int row = 0, col = 0;
+    while (inFile >> hex >> value) {
+        state[col][row] = static_cast<unsigned char>(value);
+        col++;
+        if (col == 4) {
+            col = 0;
+            row++;
+        }
+        if (row == 4) {
+            break; 
+        }
+    }
+
+    inFile.close();
     AESDecrypt(state, expandedKeys, decrypted);
     for(int i=0; i<16; i++)
     decrypted[i]^=original[i];
@@ -482,7 +504,6 @@ int main()
     buffer[size] = '\0';
     file.close(); 
     string plainText(buffer);
-    cout<<plainText;
     int rem = 16-plainText.size()%16;
     if(rem!=16)
     {
