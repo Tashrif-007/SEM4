@@ -421,12 +421,12 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     printf("\n");
     for(int i=0; i<16; i++)
     IV[i]=cipher[i];
+}
 
+void decryptingSample(unsigned char state[4][4], unsigned char expandedKeys[176], string &decrypted)
+{
     ifstream inFile("cipher.txt");
-    if (!inFile.is_open()) {
-        cerr << "Error opening file.";
-        return;
-    }
+    
 
     unsigned int value;
     int row = 0, col = 0;
