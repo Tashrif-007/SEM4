@@ -1,7 +1,6 @@
 #include<bits/stdc++.h>
 using namespace std;
 #define MAX 1000
-
 string IV, original;
 unsigned char subs_box[16][16]={
 
@@ -416,12 +415,34 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     AESEncrypt(state, expandedKeys, cipher);
     ofstream outFile("cipher.txt", ios::app);
     for (int i = 0; i < 16; ++i) {
-        outFile << hex << (int)state[i / 4][i % 4] << " ";
+        outFile << hex<<(int)cipher[i]<<" ";
     }
     outFile.close();
     printf("\n");
     for(int i=0; i<16; i++)
     IV[i]=cipher[i];
+}
+
+void decryptingSample(unsigned char state[4][4], unsigned char expandedKeys[176], string &decrypted)
+{
+    ifstream inFile("cipher.txt");
+    
+
+    unsigned int value;
+    int row = 0, col = 0;
+    while (inFile >> hex >> value) {
+        state[col][row] = static_cast<unsigned char>(value);
+        col++;
+        if (col == 4) {
+            col = 0;
+            row++;
+        }
+        if (row == 4) {
+            break; 
+        }
+    }
+
+    inFile.close();
     AESDecrypt(state, expandedKeys, decrypted);
     for(int i=0; i<16; i++)
     decrypted[i]^=original[i];
@@ -431,22 +452,58 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     }
 }
 
-void removePadding(unsigned char decrypted[16])
-{
-    int last = decrypted[15];
-    for(int i=0; i<16-last; i++)
-    printf("%x ", decrypted[i]);
-    printf("\n");
+string removePadding(string& paddedText) {
+    if (paddedText.empty()) {
+        // No padding to remove from an empty string
+        return "";
+    }
+
+    unsigned char lastChar = paddedText.back(); // Get the last character
+    int paddingSize = static_cast<int>(lastChar); // Interpret it as the padding size
+    int textLength = paddedText.length();
+
+    // Check if the padding size is valid
+    if (paddingSize > textLength) {
+        // Invalid padding, return original string
+        return paddedText;
+    }
+
+    // Check if the padding consists of repeating characters
+    bool isValidPadding = true;
+    for (int i = textLength - paddingSize; i < textLength; ++i) {
+        if (paddedText[i] != lastChar) {
+            isValidPadding = false;
+            break;
+        }
+    }
+
+    if (!isValidPadding) {
+        // Padding is not valid, return original string
+        return paddedText;
+    }
+
+    // Remove padding and return the unpadded string
+    return paddedText.substr(0, textLength - paddingSize);
 }
 
 int main()
 {
-    string plainText, key,decrypted;
-    unsigned char state[4][4], expandedKeys[176], cipher[16];    
-    getline(cin, plainText);
+    ifstream file("read.txt"); // Open the file
+    
+    string decrypted,key,IV,original;
+    unsigned char state[4][4], expandedKeys[176], cipher[16];
     cin>>key;
     cin>>IV;
-    original = IV;
+    original =IV;
+    file.seekg(0,ios::end);
+    streamsize size = file.tellg();
+    file.seekg(0,ios::beg);
+
+    char *buffer = new char[size+1];
+    file.read(buffer, size);
+    buffer[size] = '\0';
+    file.close(); 
+    string plainText(buffer);
     int rem = 16-plainText.size()%16;
     if(rem!=16)
     {
@@ -459,12 +516,11 @@ int main()
     for(int i=0; i<rounds; i++)
     {
         sample(plainText.substr(i*16, 16), key, state, expandedKeys, cipher, decrypted);
-        {
+            removePadding(decrypted);
             ofstream output("decrypted.txt", ios::app);
-            output<<decrypted<<endl;
+            output<<decrypted;
             output.close();
             decrypted.clear();
-        }
     }
     return 0;
 }
