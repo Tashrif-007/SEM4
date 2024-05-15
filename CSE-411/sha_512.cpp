@@ -170,7 +170,7 @@ vector<uint64_t> getWord(string block)
     return Words;
 }
 
-string getHash(string message)
+void getHash(string message)
 {
     string padded = padding(message);
     int rounds = padded.size()/1024;
@@ -221,13 +221,33 @@ string getHash(string message)
     {
         hashVal<<toHex(H[i]);
     }
-    return hashVal.str();
+    string hash = hashVal.str();
+    ofstream outFile("hashvalue.txt", std::ios::out | std::ios::app);
+    if (!outFile.is_open()) {
+        std::cout << "Unable to open file for writing." << std::endl;
+        return;
+    }
+
+    for(int i=0; i<hash.size(); i++)
+    outFile<<hash[i];
+
+    outFile.close();
 }
 
 int main()
 {
-    string message;
-    getline(cin, message);
-    cout<<getHash(message)<<endl;
+    ifstream file("read.txt");
+  
+  file.seekg(0,ios::end);
+    streamsize size = file.tellg();
+    file.seekg(0,ios::beg);
+
+    char *buffer = new char[size+1];
+    file.read(buffer, size);
+    buffer[size] = '\0';
+    file.close(); 
+    string message(buffer);
+    getHash(message);
+
     return 0;
 }
