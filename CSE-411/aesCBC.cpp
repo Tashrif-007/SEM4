@@ -1,9 +1,7 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-#define MAX 1000
-string IV, original;
-unsigned char subs_box[16][16]={
 
+unsigned char s_box[16][16] = {
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
     0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -19,10 +17,9 @@ unsigned char subs_box[16][16]={
     0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
     0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
     0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
-    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
-};
+    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16};
 
-unsigned char inv_subs_box[16][16] = {
+unsigned char inv_s_box[16][16] = {
     0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
     0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
     0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
@@ -41,14 +38,10 @@ unsigned char inv_subs_box[16][16] = {
     0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
 };
 
-unsigned char mixCol[4][4] = {
-    0x02, 0x03, 0x01, 0x01,
-    0x01, 0x02, 0x03, 0x01,
-    0x01, 0x01, 0x02, 0x03,
-    0x03, 0x01, 0x01, 0x02
-};
+unsigned char rcon[10] = {
+    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
 
-unsigned char mul2[] =
+unsigned char mul_2[] =
 {
     0x00,0x02,0x04,0x06,0x08,0x0a,0x0c,0x0e,0x10,0x12,0x14,0x16,0x18,0x1a,0x1c,0x1e,
     0x20,0x22,0x24,0x26,0x28,0x2a,0x2c,0x2e,0x30,0x32,0x34,0x36,0x38,0x3a,0x3c,0x3e,
@@ -168,334 +161,346 @@ unsigned char mul_14[] =
     0xd7,0xd9,0xcb,0xc5,0xef,0xe1,0xf3,0xfd,0xa7,0xa9,0xbb,0xb5,0x9f,0x91,0x83,0x8d
 };
 
-unsigned char rcons[10] = {
-    0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36
-};
-
-void g(unsigned char temp[4], int round)
+string padding(string text, int num)
 {
-    unsigned char t = temp[3];
-    for(int i=3; i>=0; i--)
-    swap(temp[i], t);
-    temp[3]=t;
-
-    for(int i=0; i<4; i++)
-    temp[i] = subs_box[temp[i]>>4][temp[i]&0x0F];
-    temp[0] = temp[0]^rcons[round];
+  int n = num;
+  for (int i = 0; i < n; i++)
+  {
+    text += (unsigned char)num;
+    if(text.size()%16==0)break;
+  }
+  return text;
 }
 
-void keyExpansion(string key, unsigned char *expandedKeys)
+void removepadding(unsigned char decipher_text[16])
 {
-    unsigned char words[44][4];
-    for(int i=0; i<4; i++)
-    {
-        for(int j=0; j<4; j++)
-        words[i][j] = key[i*4+j];
+    int temp = decipher_text[15];
+    if (temp < 1 || temp > 16) temp = 0;
+
+    std::ofstream outFile("decrypted.txt", std::ios::out | std::ios::app);
+    if (!outFile.is_open()) {
+        std::cout << "Unable to open file for writing." << std::endl;
+        return;
     }
 
-    for(int i=4; i<44; i++)
-    {
-            if(i%4==0)
-            {
-                unsigned char temp[4];
-                for(int k=0; k<4; k++)
-                temp[k] = words[i-1][k];
-                g(temp, i/4-1);
-                for(int k=0; k<4; k++)
-                words[i][k] = temp[k]^words[i-4][k];
-            }
-            else
-            {
-                for(int k=0; k<4; k++)
-                words[i][k] = words[i-1][k]^words[i-4][k];
-            }
+    for (int i = 0; i < 16 - temp; i++) {
+        outFile << decipher_text[i];
     }
-    for(int i=0,k=0; i<44; i++)
-    {
-        for(int j=0; j<4; j++)
-        expandedKeys[k++] = words[i][j];
-    }
-}
 
-void subByte(unsigned char state[4][4])
-{
-    for(int i=0; i<4; i++)
-    {
-        for(int j=0; j<4; j++)
-        state[i][j] = subs_box[state[i][j]>>4][state[i][j]&0x0F];
-    }
-}
-
-void invSubByte(unsigned char state[4][4])
-{
-    for(int i=0; i<4; i++)
-    {
-        for(int j=0; j<4; j++)
-        state[i][j] = inv_subs_box[state[i][j]>>4][state[i][j]&0x0F];
-    }
-}
-
-void shiftRow(unsigned char state[4][4])
-{
-    unsigned char temp;
-
-    temp = state[1][0];
-    state[1][0] = state[1][1];
-    state[1][1] = state[1][2];
-    state[1][2] = state[1][3];
-    state[1][3] = temp;
-
-    temp = state[2][0];
-    state[2][0] = state[2][2];
-    state[2][2] = temp;
-    temp = state[2][1];
-    state[2][1] = state[2][3];
-    state[2][3] = temp;
-
-    temp = state[3][3];
-    state[3][3] = state[3][2];
-    state[3][2] = state[3][1];
-    state[3][1] = state[3][0];
-    state[3][0] = temp;
-}
-
-void invShiftRow(unsigned char state[4][4]) {
-    unsigned char temp;
-
-    temp = state[1][3];
-    state[1][3] = state[1][2];
-    state[1][2] = state[1][1];
-    state[1][1] = state[1][0];
-    state[1][0] = temp;
-
-    temp = state[2][0];
-    state[2][0] = state[2][2];
-    state[2][2] = temp;
-    temp = state[2][1];
-    state[2][1] = state[2][3];
-    state[2][3] = temp;
-
-    temp = state[3][0];
-    state[3][0] = state[3][1];
-    state[3][1] = state[3][2];
-    state[3][2] = state[3][3];
-    state[3][3] = temp;
-}
-
-void doMixColumn(unsigned char word[4])
-{
-    unsigned char temp[4];
-    for(int i=0; i<4; i++)
-    temp[i] = word[i];
-
-    temp[0] = mul2[word[0]]^mul_3[word[1]]^word[2]^word[3];
-    temp[1] = word[0]^mul2[word[1]]^mul_3[word[2]]^word[3];
-    temp[2] = word[0]^word[1]^mul2[word[2]]^mul_3[word[3]];
-    temp[3] = mul_3[word[0]]^word[1]^word[2]^mul2[word[3]];
-
-    for(int i=0; i<4; i++)
-    word[i] = temp[i];
-}
-
-void mixColumn(unsigned char state[4][4])
-{
-    for(int i=0; i<4; i++)
-    {
-        unsigned char temp[4];
-        int k=0;
-        for(int j=0; j<4; j++)
-        {
-            temp[k] = state[j][i];
-            k++;
-        }
-        doMixColumn(temp);
-        k=0;
-        for(int j=0; j<4; j++)
-        state[j][i] = temp[k++];
-    }
-}
-
-void doInvMixColumn(unsigned char word[4])
-{
-    unsigned char temp[4];
-    for(int i=0; i<4; i++)
-    temp[i] = word[i];
-
-    temp[0] = mul_14[word[0]]^mul_11[word[1]]^mul_13[word[2]]^mul_9[word[3]];
-    temp[1] = mul_9[word[0]]^mul_14[word[1]]^mul_11[word[2]]^mul_13[word[3]];
-    temp[2] = mul_13[word[0]]^mul_9[word[1]]^mul_14[word[2]]^mul_11[word[3]];
-    temp[3] = mul_11[word[0]]^mul_13[word[1]]^mul_9[word[2]]^mul_14[word[3]];
-
-    for(int i=0; i<4; i++)
-    word[i] = temp[i];
-}
-
-void invMixColumn(unsigned char state[4][4])
-{
-    for(int i=0; i<4; i++)
-    {
-        unsigned char temp[4];
-        int k=0;
-        for(int j=0; j<4; j++)
-        {
-            temp[k] = state[j][i];
-            k++;
-        }
-        doInvMixColumn(temp);
-        k=0;
-        for(int j=0; j<4; j++)
-        state[j][i] = temp[k++];
-    }
-}
-
-void addRoundKey(unsigned char state[4][4], unsigned char *expandedKeys, int round)
-{
-    round*=16;
-    for(int i=0; i<4; i++)  
-    {
-        for(int j=0; j<4; j++)
-        state[j][i]^=expandedKeys[round++];
-    }
-}
-
-void AESEncrypt(unsigned char state[4][4], unsigned char expandedKeys[176], unsigned char cipher[16])
-{
-    addRoundKey(state, expandedKeys, 0);
-
-    for(int i=0; i<10; i++)
-    {
-        subByte(state);
-        shiftRow(state);
-        if(i!=9)
-        mixColumn(state);
-        addRoundKey(state, expandedKeys, i+1);
-    }
-    for(int i=0,k=0; i<4; i++)
-    for(int j=0; j<4; j++)
-    cipher[k++] = state[j][i];
-}
-
-void AESDecrypt(unsigned char state[4][4], unsigned char expandedKeys[176], string &decrypted)
-{
-    addRoundKey(state, expandedKeys, 10);
-    for(int i=9; i>=0; i--)
-    {
-        invShiftRow(state);
-        invSubByte(state);
-        addRoundKey(state, expandedKeys, i);
-        if(i!=0)
-        invMixColumn(state);
-    }
-    for(int i=0; i<4; i++)
-    {
-        for(int j=0; j<4; j++)
-        decrypted+=state[j][i];
-    }
-}
-
-void sample(string plainText, string key, unsigned char state[4][4], unsigned char expandedKeys[176], unsigned char cipher[16], string &decrypted)
-{
-    for(int i=0,k=0; i<4; i++)
-    {
-        for(int j=0; j<4; j++)
-        {
-            state[j][i] = plainText[i*4+j];
-            //printf("%x ", state[j][i]);
-        }
-        //printf("\n");
-    }
-    for(int i=0,k=0; i<4; i++)
-    {
-        for(int j=0; j<4; j++)
-        {
-            state[j][i]^=IV[k++];
-        }
-    }
-    keyExpansion(key, expandedKeys);
-    AESEncrypt(state, expandedKeys, cipher);
-    ofstream outFile("cipher.txt", ios::app);
-    for (int i = 0; i < 16; ++i) {
-        outFile << hex<<(int)cipher[i]<<" ";
-    }
     outFile.close();
-    printf("\n");
-    for(int i=0; i<16; i++)
-    IV[i]=cipher[i];
 }
 
-void decryptingSample(unsigned char state[4][4], unsigned char expandedKeys[176], string &decrypted)
+void RotWord(unsigned char *word)
 {
-    ifstream inFile("cipher.txt");
-    
-
-    unsigned int value;
-    int row = 0, col = 0;
-    while (inFile >> hex >> value) {
-        state[col][row] = static_cast<unsigned char>(value);
-        col++;
-        if (col == 4) {
-            col = 0;
-            row++;
-        }
-        if (row == 4) {
-            break; 
-        }
-    }
-
-    inFile.close();
-    AESDecrypt(state, expandedKeys, decrypted);
-    for(int i=0; i<16; i++)
-    decrypted[i]^=original[i];
-    for(int i=0; i<16; i++)
-    {
-        original[i] = cipher[i];
-    }
+  unsigned char temp = word[0];
+  word[0] = word[1];
+  word[1] = word[2];
+  word[2] = word[3];
+  word[3] = temp;
 }
 
-string removePadding(string& paddedText) {
-    if (paddedText.empty()) {
-        // No padding to remove from an empty string
-        return "";
+void SubByteForKey(unsigned char *word)
+{
+  for (int i = 0; i < 4; i++)
+  {
+    int r = (word[i] >> 4) & 0x0F;
+    int c = word[i] & 0x0F;
+    word[i] = s_box[r][c];
+  }
+}
+
+void g(unsigned char *word, int round)
+{
+  RotWord(word);
+  SubByteForKey(word);
+  word[0] = word[0] ^ rcon[round - 1];
+}
+
+void key_expansion(string key, unsigned char *expanded_key)
+{
+  unsigned char word[44][4];
+  for (int i = 0; i < 4; i++)
+  {
+    for (int j = 0; j < 4; j++)
+    {
+      word[i][j] = key[i * 4 + j];
     }
+  }
+  
 
-    unsigned char lastChar = paddedText.back(); // Get the last character
-    int paddingSize = static_cast<int>(lastChar); // Interpret it as the padding size
-    int textLength = paddedText.length();
-
-    // Check if the padding size is valid
-    if (paddingSize > textLength) {
-        // Invalid padding, return original string
-        return paddedText;
+  for (int i = 4; i < 44; i++)
+  {
+    if (i % 4 == 0)
+    {
+      unsigned char temp[4];
+      for (int j = 0; j < 4; j++)
+      {
+        temp[j] = word[i - 1][j];
+      }
+      g(temp, i / 4);
+      for (int j = 0; j < 4; j++)
+      {
+        word[i][j] = word[i - 4][j] ^ temp[j];
+      }
     }
+    else
+    {
+      for (int j = 0; j < 4; j++)
+      {
+        word[i][j] = word[i - 1][j] ^ word[i - 4][j];
+      }
+    }
+    
+  }
+  for(int i=0;i<44;i++){
+    for(int j=0;j<4;j++){
+      expanded_key[i*4+j]=word[i][j];
+    }
+  }
 
-    // Check if the padding consists of repeating characters
-    bool isValidPadding = true;
-    for (int i = textLength - paddingSize; i < textLength; ++i) {
-        if (paddedText[i] != lastChar) {
-            isValidPadding = false;
+}
+
+void SubBytes(unsigned char state[4][4])
+{
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      int r=(state[i][j]>>4) & 0x0F;
+      int c=state[i][j] & 0x0F;
+      state[i][j]=s_box[r][c];
+    }
+  }
+}
+
+void InvSubBytes(unsigned char state[4][4])
+{
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      int r=(state[i][j]>>4) & 0x0F;
+      int c=state[i][j] & 0x0F;
+      state[i][j]=inv_s_box[r][c];
+    }
+  }
+}
+
+void ShiftRows(unsigned char state[4][4])
+{
+  unsigned char temp=state[1][0];
+  state[1][0]=state[1][1];
+  state[1][1]=state[1][2];
+  state[1][2]=state[1][3];
+  state[1][3]=temp;
+
+  unsigned char temp2=state[2][1];
+  temp=state[2][0];
+  state[2][0]=state[2][2];
+  state[2][1]=state[2][3];
+  state[2][2]=temp;
+  state[2][3]=temp2;
+
+  unsigned char temp3=state[3][2];
+  temp2=state[3][1],temp=state[3][0];
+  state[3][0]=state[3][3];
+  state[3][1]=temp;
+  state[3][2]=temp2;
+  state[3][3]=temp3;
+
+}
+
+void InvShiftRows(unsigned char state[4][4])
+{
+  unsigned char temp=state[1][3];
+  state[1][3]=state[1][2];
+  state[1][2]=state[1][1];
+  state[1][1]=state[1][0];
+  state[1][0]=temp;
+
+  unsigned char temp2=state[2][2];
+  temp=state[2][3];
+  state[2][3]=state[2][1];
+  state[2][2]=state[2][0];
+  state[2][1]=temp;
+  state[2][0]=temp2;
+
+  unsigned char temp3=state[3][1];
+  temp2=state[3][2],temp=state[3][3];
+  state[3][3]=state[3][0];
+  state[3][2]=temp;
+  state[3][1]=temp2;
+  state[3][0]=temp3;
+}
+
+void MixColumns(unsigned char state[4][4])
+{
+  unsigned char temp[4][4];
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      temp[i][j]=state[i][j];
+    }
+  }
+  for(int i=0;i<4;i++){
+    temp[0][i]=mul_2[state[0][i]] ^ mul_3[state[1][i]] ^ state[2][i] ^ state[3][i];
+    temp[1][i]=state[0][i] ^ mul_2[state[1][i]] ^ mul_3[state[2][i]] ^ state[3][i];
+    temp[2][i]=state[0][i] ^ state[1][i] ^ mul_2[state[2][i]] ^ mul_3[state[3][i]];
+    temp[3][i]=mul_3[state[0][i]] ^ state[1][i] ^ state[2][i] ^ mul_2[state[3][i]];
+  }
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      state[i][j]=temp[i][j];
+    }
+  }
+}
+
+void InvMixColumns(unsigned char state[4][4])
+{
+  unsigned char temp[4][4];
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      temp[i][j]=state[i][j];
+    }
+  }
+  for(int i=0;i<4;i++){
+    temp[0][i]=mul_14[state[0][i]] ^ mul_11[state[1][i]] ^ mul_13[state[2][i]] ^ mul_9[state[3][i]];
+    temp[1][i]=mul_9[state[0][i]] ^ mul_14[state[1][i]] ^ mul_11[state[2][i]] ^ mul_13[state[3][i]];
+    temp[2][i]=mul_13[state[0][i]] ^ mul_9[state[1][i]] ^ mul_14[state[2][i]] ^ mul_11[state[3][i]];
+    temp[3][i]=mul_11[state[0][i]] ^ mul_13[state[1][i]] ^ mul_9[state[2][i]] ^ mul_14[state[3][i]];
+  }
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      state[i][j]=temp[i][j];
+    }
+  }
+}
+
+void AddRoundKey(unsigned char state[4][4],unsigned char *expanded_key,int round)
+{
+  round*=16;
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      state[j][i]=state[j][i]^expanded_key[round++];
+    }
+  }
+}
+
+void AES_Encrypt(unsigned char state[4][4],unsigned char *expanded_key,unsigned char *cipher_text)
+{
+  AddRoundKey(state,expanded_key,0);
+  for(int i=1;i<=10;i++){
+    SubBytes(state);
+    ShiftRows(state);
+    if(i!=10)MixColumns(state);
+    AddRoundKey(state,expanded_key,i);
+  }
+  
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      cipher_text[i*4+j]=state[j][i];
+    }
+  }
+}
+
+void AES_Decrypt(unsigned char state[4][4],unsigned char *expanded_key)
+{
+  AddRoundKey(state,expanded_key,10);
+  for(int i=9;i>=0;i--){
+    InvShiftRows(state);
+    InvSubBytes(state);
+    AddRoundKey(state,expanded_key,i);
+    if(i!=0)InvMixColumns(state);
+    
+  }
+}
+
+void encryption(string plain_text, string key,unsigned char *cipher_text)
+{
+  unsigned char expanded_key[176];
+  key_expansion(key, expanded_key);
+  unsigned char state[4][4];
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      state[j][i]=plain_text[i*4+j];
+    }
+  }
+  
+  AES_Encrypt(state,expanded_key,cipher_text);
+  
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      state[j][i]=cipher_text[i*4+j];
+    }
+  }
+  ofstream outputFile("cipher.txt",ios::app);
+  for(int i=0;i<4;i++){
+    for(int j=0;j<4;j++){
+      outputFile<<hex<<static_cast<int>(state[j][i]);
+      outputFile<<" ";
+    }
+  }
+  //outputFile<<"\n";
+  outputFile.close();
+  //AES_Decrypt(state,expanded_key);
+  
+}
+
+void decryption(string key,string IV)
+{
+  unsigned char state[4][4],expanded_key[176],temp[4][4],temp2[4][4];
+  key_expansion(key,expanded_key);
+  ifstream inputFile("cipher.txt");
+  int block=0;
+  while (true) {
+        block++;
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                unsigned int value;
+                if (!(inputFile >> hex >> value)) {
+                    break; 
+                }
+                state[j][i] = static_cast<unsigned char>(value);
+                temp[j][i]=state[j][i];
+            }
+            if (inputFile.eof() || inputFile.fail()) {
+                break;
+            }
+        }
+        if (inputFile.eof()) {
             break;
         }
-    }
+        AES_Decrypt(state,expanded_key);
+        unsigned char decipher_text[16];
+        for(int i=0;i<4;i++){
+          for(int j=0;j<4;j++){
+            decipher_text[i*4+j]=state[j][i];
+          }
+        }
+        if(block==1){
+          for(int i=0;i<16;i++){
+            decipher_text[i]^=IV[i];
+          }
+        }
+        else {
+          for(int i=0,k=0;i<4;i++){
+            for(int j=0;j<4;j++)
+            decipher_text[k++]^=temp2[j][i];
+          }
+        }
+        for(int i=0;i<4;i++){
+          for(int j=0;j<4;j++)
+            temp2[j][i]=temp[j][i];
+        }
+        removepadding(decipher_text);
+   }
+   
+  inputFile.close();
 
-    if (!isValidPadding) {
-        // Padding is not valid, return original string
-        return paddedText;
-    }
-
-    // Remove padding and return the unpadded string
-    return paddedText.substr(0, textLength - paddingSize);
 }
 
 int main()
 {
-    ifstream file("read.txt"); // Open the file
-    
-    string decrypted,key,IV,original;
-    unsigned char state[4][4], expandedKeys[176], cipher[16];
-    cin>>key;
-    cin>>IV;
-    original =IV;
-    file.seekg(0,ios::end);
+  ifstream file("read.txt");
+  string keyword = "imtheonlytashpro";
+  string IV="imtheonlyprotash";
+  
+  file.seekg(0,ios::end);
     streamsize size = file.tellg();
     file.seekg(0,ios::beg);
 
@@ -504,23 +509,31 @@ int main()
     buffer[size] = '\0';
     file.close(); 
     string plainText(buffer);
-    int rem = 16-plainText.size()%16;
-    if(rem!=16)
-    {
-        for(int i=0; i<rem; i++)
-        plainText+=(unsigned char)rem;
+  int round_num = 0;
+  if(plainText.size()%16!=0)plainText = padding(plainText, 16 - plainText.size() % 16);
+  round_num = plainText.size() / 16;
+
+  unsigned char cipher_text[16];
+  for(int i=0;i<round_num;i++){
+    string temp=plainText.substr(i*16,16);
+    if(i==0){
+        for(int j=0;j<16;j++){
+            temp[j]=temp[j]^IV[j];
+        }
     }
-    int rounds = plainText.size()/16;
-    //unsigned char key[] = {0x0f, 0x15, 0x71, 0xc9, 0x47, 0xd9, 0xe8, 0x59, 0x0c, 0xb7, 0xad, 0xd6, 0xaf, 0x7f, 0x67, 0x98};
-    //unsigned char plainText[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10};
-    for(int i=0; i<rounds; i++)
-    {
-        sample(plainText.substr(i*16, 16), key, state, expandedKeys, cipher, decrypted);
-            removePadding(decrypted);
-            ofstream output("decrypted.txt", ios::app);
-            output<<decrypted;
-            output.close();
-            decrypted.clear();
+    else {
+        for(int j=0;j<16;j++)
+          temp[j]=temp[j]^cipher_text[j];
     }
-    return 0;
+    encryption(temp,keyword,cipher_text);
+    // if(i==0)
+    //   for(int j=0;j<16;j++)
+    //     cipher_text[j] = temp[j];
+  }
+
+  decryption(keyword,IV);
+
+
+  
+  return 0;
 }
