@@ -392,7 +392,23 @@ void AESDecrypt(unsigned char state[4][4], unsigned char expandedKeys[176], stri
         decrypted+=state[j][i];
     }
 }
+void removepadding(string &decipher_text)
+{
+    int temp = decipher_text[15];
+    if (temp < 1 || temp > 16) temp = 0;
 
+    ofstream outFile("decrypted.txt", std::ios::out | std::ios::app);
+    if (!outFile.is_open()) {
+        std::cout << "Unable to open file for writing." << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < 16 - temp; i++) {
+        outFile << decipher_text[i];
+    }
+
+    outFile.close();
+}
 void sample(string plainText, string key, unsigned char state[4][4], unsigned char expandedKeys[176], unsigned char cipher[16], string &decrypted)
 {
     for(int i=0,k=0; i<4; i++)
@@ -409,22 +425,30 @@ void sample(string plainText, string key, unsigned char state[4][4], unsigned ch
     for(int i=0; i<16; i++)
     printf("%x ", cipher[i]);
     printf("\n");
+    ofstream outputFile("cipher.txt", ios::app);
+    for(int i=0; i<16; i++)
+    outputFile<<cipher[i];
+    outputFile.close();
     AESDecrypt(state, expandedKeys, decrypted);
 }
 
-void removePadding(unsigned char decrypted[16])
-{
-    int last = decrypted[15];
-    for(int i=0; i<16-last; i++)
-    printf("%x ", decrypted[i]);
-    printf("\n");
-}
+
 
 int main()
 {
-    string plainText, key,decrypted;
+    string key,decrypted;
     unsigned char state[4][4], expandedKeys[176], cipher[16];    
-    getline(cin, plainText);
+    ifstream file("read.txt");
+  
+  file.seekg(0,ios::end);
+    streamsize size = file.tellg();
+    file.seekg(0,ios::beg);
+
+    char *buffer = new char[size+1];
+    file.read(buffer, size);
+    buffer[size] = '\0';
+    file.close();
+    string plainText(buffer);
     cin>>key;
     int rem = 16-plainText.size()%16;
     if(rem!=16)
@@ -439,7 +463,7 @@ int main()
     {
         sample(plainText.substr(i*16, 16), key, state, expandedKeys, cipher, decrypted);
         {
-            cout<<decrypted<<endl;
+            removepadding(decrypted);
             decrypted.clear();
         }
     }
